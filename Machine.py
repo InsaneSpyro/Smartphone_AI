@@ -21,16 +21,33 @@ class customer:
     def common_probability(self, Einkommen, Alter, Kaufentscheidung):
         p_e = self.salary_prob.get(Einkommen, 0)
         p_a = self.age_prob.get(Alter, 0)
-        p_k = self.purchase_decision_prob(Kaufentscheidung, 0)
+        p_k = self.purchase_decision_prob.get(Kaufentscheidung, 0)
         return p_e * p_a * p_k
 
     def purchase_probability(self, Einkauf):
         total = 0
         for Alter in self.age_prob:
             for Einkommen in self.salary_prob:
-                total += self.common_probability(Alter, Einkommen, Einkauf)
-        return total     
+                total += self.common_probability(Einkommen, Alter, Einkauf)
+        return total    
 
+# Calculate probabilities from training data
+P_Alter = df["Alter"].value_counts(normalize=True).to_dict()
+P_Einkommen = df["Einkommen"].value_counts(normalize=True).to_dict()
+
+# Conditional probabilities P(Einkauf | Alter, Einkommen)
+grouped = df.groupby(["Alter", "Einkommen"])["Kaufentscheidung"].value_counts(normalize=True)
+P_Einkauf = {}
+
+for (Alter, Einkommen), dist in grouped.groupby(level=[0, 1]):
+    P_Einkauf[(Alter, Einkommen)] = dist.droplevel([0, 1]).to_dict()
+
+# Create model 
+model = customer(P_Alter, P_Einkommen, P_Einkauf)
+
+# Example
+print("P(Einkauf = Apple):", round(model.purchase_probability("Apple"), 3))
+print("P(Einkauf = Samsung):", round(model.purchase_probability("Samsung"), 3))
 
 
 
