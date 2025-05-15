@@ -1,3 +1,6 @@
+# Import pandas libary to read the excel file with training data
+import pandas as pd
+
 def main():
     class age:
         # Node for the age of the purchasing customer
