@@ -1,24 +1,16 @@
 # Import pandas libary to read the excel file with training data
 import pandas as pd
 
+df = pd.read_excel("Trainingsdaten.xlsx", engine="openpyxl")
+
 def main():
-    class age:
-        # Node for the age of the purchasing customer
-        def __init__(self, young, old):
-            self.young = young
-            self.old = old
+    class customer:
+        # Node for the customer type and their purchase decision
+        def __init__(self, age, salary, purchase_decision):
+            self.age = age 
+            self.salary = salary 
+            self.purchase_decision = purchase_decision
     
-    class salary:
-        # Node for the salary of the purchasing customer
-        def __init__(self, low, high):
-            self.low = low
-            self.high = high
-    
-    class purchase_decision:
-        # Node for the purchase decision of the customer
-        def __init__(self, samsung, apple):
-            self.samsung = samsung
-            self.apple = apple 
 
 
 
