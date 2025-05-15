@@ -18,6 +18,18 @@ class customer:
         self.age_prob = age_prob # (Jung, Alt)
         self.purchase_decision_prob = purchase_decision_prob # (Samsung, Apple)
     
+    def common_probability(self, Einkommen, Alter, Kaufentscheidung):
+        p_e = self.salary_prob.get(Einkommen, 0)
+        p_a = self.age_prob.get(Alter, 0)
+        p_k = self.purchase_decision_prob(Kaufentscheidung, 0)
+        return p_e * p_a * p_k
+
+    def purchase_probability(self, Einkauf):
+        total = 0
+        for Alter in self.age_prob:
+            for Einkommen in self.salary_prob:
+                total += self.common_probability(Alter, Einkommen, Einkauf)
+        return total     
 
 
 
