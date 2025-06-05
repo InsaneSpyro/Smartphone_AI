@@ -3,6 +3,8 @@ import pandas as pd
 
 # Read Excel file 
 df = pd.read_excel("Trainingsdaten.xlsx", engine="openpyxl")
+# Format Excel file to csv file
+df.to_csv('Trainingsdaten.csv', index=False)
 
 # Make column names Python code friendly
 df.columns = ["Einkommen", "Alter", "Kaufentscheidung"]
