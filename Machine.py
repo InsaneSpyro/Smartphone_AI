@@ -1,14 +1,32 @@
 # Import pandas libary to read the excel file with training data
 import pandas as pd
+import csv 
 
 # Read Excel file 
 df = pd.read_excel("Trainingsdaten.xlsx", engine="openpyxl")
+df.to_csv("Trainingsdaten.csv", index=False)
+
+# Format excel file to csv file
+with open("Trainingsdaten.csv", newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    #for row in reader:
+        #print(row)
+
+columns = [
+    "Alter 1 = Jung, 0 = Alt"
+    "Einkommen 1 = Hoch, 0 = Niedrig"
+    "Kaufentscheidung 1 = Apple, 0 = Niedrig"
+]
 
 # Make column names Python code friendly
 df.columns = ["Einkommen", "Alter", "Kaufentscheidung"]
 df["Einkommen"] = df["Einkommen"].map({1: "Hoch", 0: "Niedrig"})
 df["Alter"] = df["Alter"].map({1: "Jung", 0: "Alt"})
-df["Kaufentscheidung"] = df["Kaufentscheidung"].map({1: "Apple", 0: "Samsung"})
+df["Kaufentscheidung"] = df["Kaufentscheidung"].map({1: "Apple", 0: "Android"})
+
+# Abfrage erstellen wo man für das Sampling die Angaben festlegt. z.B. "Wie ist das Alter der Person? 1 = Hoch, 0 = Niedrig" usw.
+salary_input = input("Wie ist das Einkommen der Person?: ")
+age_input = input("Wie ist das Alter der Person?: ")
 
 # Customer class with probabilities
 class customer:
@@ -16,7 +34,7 @@ class customer:
     def __init__(self, age_prob, salary_prob, purchase_decision_prob):
         self.salary_prob = salary_prob # (Niedrig, Hoch)
         self.age_prob = age_prob # (Jung, Alt)
-        self.purchase_decision_prob = purchase_decision_prob # (Samsung, Apple)
+        self.purchase_decision_prob = purchase_decision_prob # (Android, Apple)
     
     def common_probability(self, Einkommen, Alter, Kaufentscheidung):
         p_e = self.salary_prob.get(Einkommen, 0)
@@ -47,7 +65,7 @@ model = customer(P_Alter, P_Einkommen, P_Einkauf)
 
 # Example
 print("P(Einkauf = Apple):", round(model.purchase_probability("Apple"), 3))
-print("P(Einkauf = Samsung):", round(model.purchase_probability("Samsung"), 3))
+print("P(Einkauf = Android):", round(model.purchase_probability("Android"), 3))
 
 
 
