@@ -9,8 +9,8 @@ df.to_csv("Trainingsdaten.csv", index=False)
 # Format excel file to csv file
 with open("Trainingsdaten.csv", newline='') as csvfile:
     reader = csv.DictReader(csvfile)
-    for row in reader:
-        print(row)
+    #for row in reader:
+        #print(row)
 
 columns = [
     "Alter 1 = Jung, 0 = Alt"
@@ -24,7 +24,9 @@ df["Einkommen"] = df["Einkommen"].map({1: "Hoch", 0: "Niedrig"})
 df["Alter"] = df["Alter"].map({1: "Jung", 0: "Alt"})
 df["Kaufentscheidung"] = df["Kaufentscheidung"].map({1: "Apple", 0: "Android"})
 
-# Abfrage erstellen wo man für das Sampling die Angaben festlegt. z.B. "Wie ist das Alter der Person? ..." usw.
+# Abfrage erstellen wo man für das Sampling die Angaben festlegt. z.B. "Wie ist das Alter der Person? 1 = Hoch, 0 = Niedrig" usw.
+salary_input = input("Wie ist das Einkommen der Person?: ")
+age_input = input("Wie ist das Alter der Person?: ")
 
 # Customer class with probabilities
 class customer:
