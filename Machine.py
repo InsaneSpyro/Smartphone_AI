@@ -1,4 +1,4 @@
-# Import pandas libary to read the excel file with training data
+# Importierung der pandas Bibliothek zum einlesen der Excel Datei
 import pandas as pd
 import csv 
 
@@ -27,7 +27,7 @@ P_Kauf = {}
 for (alter, einkommen), dist in grouped.groupby(level=[0, 1]):
     P_Kauf[(alter, einkommen)] = dist.droplevel([0, 1]).to_dict()
 
-# Customer class with probabilities
+# Customer Klasse mit den wahrscheinlichkeiten
 class customer:
     # Node for the customer type and their purchase decision
     def __init__(self, alter_prob, einkommen_prob, entscheidung_prob):
