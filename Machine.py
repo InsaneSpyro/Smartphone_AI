@@ -1,71 +1,74 @@
-# Import pandas libary to read the excel file with training data
+# Importierung der benötigten Bibliotheken
 import pandas as pd
 import csv 
 
-# Read Excel file 
+# Excel Datei einlesen
 df = pd.read_excel("Trainingsdaten.xlsx", engine="openpyxl")
 df.to_csv("Trainingsdaten.csv", index=False)
 
-# Format excel file to csv file
+# Excel Datei zu CSV umwandeln
 with open("Trainingsdaten.csv", newline='') as csvfile:
     reader = csv.DictReader(csvfile)
-    #for row in reader:
-        #print(row)
 
-columns = [
-    "Alter 1 = Jung, 0 = Alt"
-    "Einkommen 1 = Hoch, 0 = Niedrig"
-    "Kaufentscheidung 1 = Apple, 0 = Niedrig"
-]
-
-# Make column names Python code friendly
+# Spaltennamen Python freundlich machen
 df.columns = ["Einkommen", "Alter", "Kaufentscheidung"]
+
+# Spalten festlegen
 df["Einkommen"] = df["Einkommen"].map({1: "Hoch", 0: "Niedrig"})
 df["Alter"] = df["Alter"].map({1: "Jung", 0: "Alt"})
 df["Kaufentscheidung"] = df["Kaufentscheidung"].map({1: "Apple", 0: "Android"})
 
-# Abfrage erstellen wo man für das Sampling die Angaben festlegt. z.B. "Wie ist das Alter der Person? 1 = Hoch, 0 = Niedrig" usw.
-salary_input = input("Wie ist das Einkommen der Person?: ")
-age_input = input("Wie ist das Alter der Person?: ")
-
-# Customer class with probabilities
-class customer:
-    # Node for the customer type and their purchase decision
-    def __init__(self, age_prob, salary_prob, purchase_decision_prob):
-        self.salary_prob = salary_prob # (Niedrig, Hoch)
-        self.age_prob = age_prob # (Jung, Alt)
-        self.purchase_decision_prob = purchase_decision_prob # (Android, Apple)
-    
-    def common_probability(self, Einkommen, Alter, Kaufentscheidung):
-        p_e = self.salary_prob.get(Einkommen, 0)
-        p_a = self.age_prob.get(Alter, 0)
-        p_k = self.purchase_decision_prob.get(Kaufentscheidung, 0)
-        return p_e * p_a * p_k
-
-    def purchase_probability(self, Einkauf):
-        total = 0
-        for Alter in self.age_prob:
-            for Einkommen in self.salary_prob:
-                total += self.common_probability(Einkommen, Alter, Einkauf)
-        return total    
-
-# Calculate probabilities from training data
+# Wahrscheinlichkeiten für Alter und Einkommen berechnen
 P_Alter = df["Alter"].value_counts(normalize=True).to_dict()
 P_Einkommen = df["Einkommen"].value_counts(normalize=True).to_dict()
 
-# Conditional probabilities P(Einkauf | Alter, Einkommen)
+# Berechnung der bedingten Wahrscheinlichkeiten: P(Kaufentscheidung | Alter, Einkommen)
 grouped = df.groupby(["Alter", "Einkommen"])["Kaufentscheidung"].value_counts(normalize=True)
-P_Einkauf = {}
+P_Kauf = {}
+for (alter, einkommen), dist in grouped.groupby(level=[0, 1]):
+    P_Kauf[(alter, einkommen)] = dist.droplevel([0, 1]).to_dict()
 
-for (Alter, Einkommen), dist in grouped.groupby(level=[0, 1]):
-    P_Einkauf[(Alter, Einkommen)] = dist.droplevel([0, 1]).to_dict()
+# Customer Klasse mit den Wahrscheinlichkeitsverteilungen
+class customer:
+    # Konstruktor: nimmt Wahrscheinlichkeiten für Alter, Einkommen und Kaufentscheidung entgegen
+    def __init__(self, alter_prob, einkommen_prob, entscheidung_prob):
+        self.alter_prob = alter_prob # (Jung, Alt)
+        self.einkommen_prob = einkommen_prob # (Niedrig, Hoch)
+        self.entscheidung_prob = entscheidung_prob # (Android, Apple)
+    
+     # Methode zur Berechnung der Wahrscheinlichkeiten ob Apple oder Android gekauft wird
+    def vorhersage(self, alter, einkommen):
+        result = {}
+        for entscheidung in ["Apple", "Android"]:
+            p_a = self.alter_prob.get(alter)
+            p_e = self.einkommen_prob.get(einkommen)
+            p_k = self.entscheidung_prob.get((alter, einkommen), {}).get(entscheidung, 0)
+            result[entscheidung] = p_a * p_e * p_k
+        # In Prozent umwandeln
+        gesamt = sum(result.values())
+        if gesamt > 0:
+            for k in result:
+                result[k] = round(100 * result[k] / gesamt, 2)
+        return result
 
-# Create model 
-model = customer(P_Alter, P_Einkommen, P_Einkauf)
+# Modell erzeugen
+modell = customer(P_Alter, P_Einkommen, P_Kauf)
 
-# Example
-print("P(Einkauf = Apple):", round(model.purchase_probability("Apple"), 3))
-print("P(Einkauf = Android):", round(model.purchase_probability("Android"), 3))
+# Informationen der Personen abfragen
+alter_input = input("Wie ist das Alter der Person?: ")
+einkommen_input = input("Wie hoch ist das Einkommen der Person?: ")
+
+# Eingaben umwandeln
+alter = "Jung" if alter_input == "1" else "Alt"
+einkommen = "Hoch" if einkommen_input == "1" else "Niedrig"
+
+# Berechnung der Wahrscheinlichkeit anhand den Benutzereingaben
+wahrscheinlichkeiten = modell.vorhersage(alter, einkommen)
+
+# Ergebnis ausgeben
+print(f"\nBasierend auf den Eingaben (Alter = {alter}, Einkommen = {einkommen}):")
+for entscheidung, prozent in wahrscheinlichkeiten.items():
+    print(f"- Wahrscheinlichkeit für {entscheidung}: {prozent}%")
 
 
 
