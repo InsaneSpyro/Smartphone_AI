@@ -1,4 +1,4 @@
-# Importierung der pandas Bibliothek zum einlesen der Excel Datei
+# Importierung der benötigten Bibliotheken
 import pandas as pd
 import csv 
 
@@ -22,28 +22,29 @@ df["Kaufentscheidung"] = df["Kaufentscheidung"].map({1: "Apple", 0: "Android"})
 P_Alter = df["Alter"].value_counts(normalize=True).to_dict()
 P_Einkommen = df["Einkommen"].value_counts(normalize=True).to_dict()
 
+# Berechnung der bedingten Wahrscheinlichkeiten: P(Kaufentscheidung | Alter, Einkommen)
 grouped = df.groupby(["Alter", "Einkommen"])["Kaufentscheidung"].value_counts(normalize=True)
 P_Kauf = {}
 for (alter, einkommen), dist in grouped.groupby(level=[0, 1]):
     P_Kauf[(alter, einkommen)] = dist.droplevel([0, 1]).to_dict()
 
-# Customer Klasse mit den wahrscheinlichkeiten
+# Customer Klasse mit den Wahrscheinlichkeitsverteilungen
 class customer:
-    # Node for the customer type and their purchase decision
+    # Konstruktor: nimmt Wahrscheinlichkeiten für Alter, Einkommen und Kaufentscheidung entgegen
     def __init__(self, alter_prob, einkommen_prob, entscheidung_prob):
         self.alter_prob = alter_prob # (Jung, Alt)
         self.einkommen_prob = einkommen_prob # (Niedrig, Hoch)
         self.entscheidung_prob = entscheidung_prob # (Android, Apple)
     
-     # Methode zur Berechnung der Wahrscheinlichkeiten für Apple und Android
+     # Methode zur Berechnung der Wahrscheinlichkeiten ob Apple oder Android gekauft wird
     def vorhersage(self, alter, einkommen):
         result = {}
         for entscheidung in ["Apple", "Android"]:
-            p_a = self.alter_prob.get(alter, 0)
-            p_e = self.einkommen_prob.get(einkommen, 0)
+            p_a = self.alter_prob.get(alter)
+            p_e = self.einkommen_prob.get(einkommen)
             p_k = self.entscheidung_prob.get((alter, einkommen), {}).get(entscheidung, 0)
-            result[entscheidung] = p_a * p_e
-        # In Prozent umrechnen
+            result[entscheidung] = p_a * p_e * p_k
+        # In Prozent umwandeln
         gesamt = sum(result.values())
         if gesamt > 0:
             for k in result:
@@ -61,7 +62,7 @@ einkommen_input = input("Wie hoch ist das Einkommen der Person?: ")
 alter = "Jung" if alter_input == "1" else "Alt"
 einkommen = "Hoch" if einkommen_input == "1" else "Niedrig"
 
-# Vorhersage berechnen
+# Berechnung der Wahrscheinlichkeit anhand den Benutzereingaben
 wahrscheinlichkeiten = modell.vorhersage(alter, einkommen)
 
 # Ergebnis ausgeben
